@@ -131,6 +131,10 @@
     .char-card-role{font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-dim);margin-top:2px}
 
     /* CREDIT BAR (inside capture zone, shown in saved image) */
+    .page-footer-stats{margin-bottom:14px;display:flex;align-items:center;justify-content:center;gap:20px}
+    .stat-item{font-size:12px;font-weight:700;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase}
+    .stat-item b{color:var(--accent);font-weight:900}
+    .stat-sep{color:var(--border);font-size:16px}
     .page-footer{text-align:center;padding:28px 48px 36px;border-top:1px solid var(--border);margin-top:32px}
     .page-footer-text{font-size:11px;font-weight:600;letter-spacing:3px;color:var(--text-muted);text-transform:uppercase}
     .page-footer-text span{color:var(--accent)}
@@ -404,6 +408,11 @@
     currentTeamAtk=shuffle([...sci,...urb]).slice(0,sizeAtk);
     currentMap=map;
     renderResults(map,currentTeamDef,currentTeamAtk);
+    fetch('https://api.countapi.xyz/hit/fiammettalaterano.github.io/randomize')
+      .then(r=>r.json()).then(d=>{
+        const el=document.getElementById('randomCount');
+        if(el) el.textContent=d.value.toLocaleString();
+      }).catch(()=>{});
   }
   function swapTeams(){
     if(!currentMap)return;
@@ -481,10 +490,29 @@
       grid.appendChild(lbl);
     });
   }
-  document.addEventListener('DOMContentLoaded',initMapPanel);
+  document.addEventListener('DOMContentLoaded',function(){
+    initMapPanel();
+    // Count page visit
+    fetch('https://api.countapi.xyz/hit/fiammettalaterano.github.io/visits')
+      .then(r=>r.json()).then(d=>{
+        const el=document.getElementById('visitCount');
+        if(el) el.textContent=d.value.toLocaleString();
+      }).catch(()=>{});
+    // Load current randomize count
+    fetch('https://api.countapi.xyz/get/fiammettalaterano.github.io/randomize')
+      .then(r=>r.json()).then(d=>{
+        const el=document.getElementById('randomCount');
+        if(el && d.value!=null) el.textContent=d.value.toLocaleString();
+      }).catch(()=>{});
+  });
   </script>
 
   <footer class="page-footer">
+    <div class="page-footer-stats">
+      <span class="stat-item">Visits &nbsp;<b id="visitCount">—</b></span>
+      <span class="stat-sep">|</span>
+      <span class="stat-item">Randomized &nbsp;<b id="randomCount">—</b></span>
+    </div>
     <div class="page-footer-text">Strinova Team Randomizer v1.0 &nbsp;&mdash;&nbsp; by <span>Fiammetta</span></div>
   </footer>
 
