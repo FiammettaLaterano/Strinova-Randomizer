@@ -164,6 +164,61 @@
       .map-result-name{font-size:40px}
     }
   </style>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDmXXY9Wo66XQIF618lyYzdT7FpRKQJGP8",
+      authDomain: "strinova-team-randomizer.firebaseapp.com",
+      databaseURL: "https://strinova-team-randomizer-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "strinova-team-randomizer",
+      storageBucket: "strinova-team-randomizer.firebasestorage.app",
+      messagingSenderId: "1062351045945",
+      appId: "1:1062351045945:web:ae394b580eb1aa458f94e8"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // ===== VISITS =====
+    function initVisits() {
+      db.ref('stats/visits').transaction(v => (v || 0) + 1, (err, committed, snap) => {
+        if (!err && committed) updateStat('visitCount', snap.val());
+      });
+      db.ref('stats/visits').on('value', snap => updateStat('visitCount', snap.val()));
+    }
+
+    // ===== RANDOMIZE =====
+    function incrementRandomize() {
+      db.ref('stats/randomize').transaction(v => (v || 0) + 1, (err, committed, snap) => {
+        if (!err && committed) updateStat('randomCount', snap.val());
+      });
+    }
+    function initRandomizeDisplay() {
+      db.ref('stats/randomize').on('value', snap => updateStat('randomCount', snap.val() || 0));
+    }
+
+    // ===== LIVE VISITORS =====
+    function initLiveVisitors() {
+      const sessionRef = db.ref('visitors').push();
+      sessionRef.onDisconnect().remove();
+      sessionRef.set(true);
+      db.ref('visitors').on('value', snap => {
+        const count = snap.numChildren();
+        updateStat('liveCount', count);
+      });
+    }
+
+    function updateStat(id, val) {
+      const el = document.getElementById(id);
+      if (el && val !== null && val !== undefined) el.textContent = Number(val).toLocaleString();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      initVisits();
+      initRandomizeDisplay();
+      initLiveVisitors();
+    });
+  </script>
 </head>
 <body>
 
@@ -175,7 +230,7 @@
       <span class="logo-game">Strinova</span>
       <span class="logo-sep">|</span>
       <span class="logo-sub">Team Randomizer</span>
-      <span class="logo-ver">v1.0</span>
+      <span class="logo-ver">v1.1</span>
     </div>
   </header>
 
@@ -408,11 +463,8 @@
     currentTeamAtk=shuffle([...sci,...urb]).slice(0,sizeAtk);
     currentMap=map;
     renderResults(map,currentTeamDef,currentTeamAtk);
-    fetch('https://api.counterapi.dev/v1/strinova-randomizer/randomize/up')
-      .then(r=>r.json()).then(d=>{
-        const el=document.getElementById('randomCount');
-        if(el) el.textContent=d.count.toLocaleString();
-      }).catch(()=>{});
+    incrementRandomize();
+    
   }
   function swapTeams(){
     if(!currentMap)return;
@@ -493,17 +545,9 @@
   document.addEventListener('DOMContentLoaded',function(){
     initMapPanel();
     // Count page visit
-    fetch('https://api.counterapi.dev/v1/strinova-randomizer/visits/up')
-      .then(r=>r.json()).then(d=>{
-        const el=document.getElementById('visitCount');
-        if(el) el.textContent=d.count.toLocaleString();
-      }).catch(()=>{});
+    
     // Load current randomize count
-    fetch('https://api.counterapi.dev/v1/strinova-randomizer/randomize')
-      .then(r=>r.json()).then(d=>{
-        const el=document.getElementById('randomCount');
-        if(el && d.count!=null) el.textContent=d.count.toLocaleString();
-      }).catch(()=>{});
+    
   });
   </script>
 
@@ -512,8 +556,10 @@
       <span class="stat-item">Visits &nbsp;<b id="visitCount">—</b></span>
       <span class="stat-sep">|</span>
       <span class="stat-item">Randomized &nbsp;<b id="randomCount">—</b></span>
+      <span class="stat-sep">|</span>
+      <span class="stat-item">🟢 Live &nbsp;<b id="liveCount">—</b></span>
     </div>
-    <div class="page-footer-text">Strinova Team Randomizer v1.0 &nbsp;&mdash;&nbsp; by <span>Fiammetta</span></div>
+    <div class="page-footer-text">Strinova Team Randomizer v1.1 &nbsp;&mdash;&nbsp; by <span>Fiammetta</span></div>
   </footer>
 
 </body>
