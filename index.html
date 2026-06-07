@@ -408,10 +408,10 @@
     currentTeamAtk=shuffle([...sci,...urb]).slice(0,sizeAtk);
     currentMap=map;
     renderResults(map,currentTeamDef,currentTeamAtk);
-    fetch('https://api.countapi.xyz/hit/fiammettalaterano.github.io/randomize')
+    fetch('https://api.counterapi.dev/v1/strinova-randomizer/randomize/up')
       .then(r=>r.json()).then(d=>{
         const el=document.getElementById('randomCount');
-        if(el) el.textContent=d.value.toLocaleString();
+        if(el) el.textContent=d.count.toLocaleString();
       }).catch(()=>{});
   }
   function swapTeams(){
@@ -493,16 +493,16 @@
   document.addEventListener('DOMContentLoaded',function(){
     initMapPanel();
     // Count page visit
-    fetch('https://api.countapi.xyz/hit/fiammettalaterano.github.io/visits')
+    fetch('https://api.counterapi.dev/v1/strinova-randomizer/visits/up')
       .then(r=>r.json()).then(d=>{
         const el=document.getElementById('visitCount');
-        if(el) el.textContent=d.value.toLocaleString();
+        if(el) el.textContent=d.count.toLocaleString();
       }).catch(()=>{});
     // Load current randomize count
-    fetch('https://api.countapi.xyz/get/fiammettalaterano.github.io/randomize')
+    fetch('https://api.counterapi.dev/v1/strinova-randomizer/randomize')
       .then(r=>r.json()).then(d=>{
         const el=document.getElementById('randomCount');
-        if(el && d.value!=null) el.textContent=d.value.toLocaleString();
+        if(el && d.count!=null) el.textContent=d.count.toLocaleString();
       }).catch(()=>{});
   });
   </script>
