@@ -145,6 +145,8 @@
     .save-btn{background:var(--accent);border:none;color:#fff;cursor:pointer;font-family:inherit;font-size:11px;font-weight:700;letter-spacing:4px;text-transform:uppercase;padding:12px 32px;clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);transition:background 0.15s}
     .save-btn:hover{background:var(--accent-hover)}
     .save-btn:disabled{opacity:0.6;cursor:not-allowed}
+    #copyBtn{background:#3b82f6;}
+
 
     /* ANIMATIONS */
     @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
@@ -164,7 +166,7 @@
       .map-result-name{font-size:40px}
     }
   
-    /* ===== CHAR FILTER PANEL (v1.2.0) ===== */
+    /* ===== CHAR FILTER PANEL (v1.2.1) ===== */
     .char-filter-wrap{max-width:1440px;margin:0 auto;padding:0 48px;display:none}
     .char-filter-wrap.open{display:block}
     .char-filter-inner{background:var(--surface);border:1px solid var(--border);border-top:2px solid var(--accent);padding:24px 28px}
@@ -257,7 +259,7 @@
       <span class="logo-game">Strinova</span>
       <span class="logo-sep">|</span>
       <span class="logo-sub">Team Randomizer</span>
-      <span class="logo-ver">v1.2.0</span>
+      <span class="logo-ver">v1.2.1</span>
     </div>
   </header>
 
@@ -386,10 +388,12 @@
   </div>
 
   <!-- SAVE BUTTON (outside capture zone) -->
-  <div class="save-bar" id="saveBar">
+ <div class="save-bar" id="saveBar">
+  <button class="save-btn" id="saveBtn" onclick="saveImage()">Save Image</button>
+  <button class="save-btn" id="copyBtn" onclick="copyImage()">Copy Image</button>
+</div>
+ 
 
-    <button class="save-btn" id="saveBtn" onclick="saveImage()">Save Image</button>
-  </div>
 
   <script>
   'use strict';
@@ -462,7 +466,7 @@
     {name:'Yvette',   role:'Controller',faction:'pus',     img:IMG['cfi_Yvette_Default.png']},
     {name:'Flavia',   role:'Duelist',   faction:'pus',     img:IMG['cfi_Flavia_Default.png']},
     {name:'Yugiri',   role:'Controller',faction:'pus',     img:IMG['cfi_Yugiri_Skin_Portrait_弦能拘束.png']},
-    {name:'Leona',    role:'Support',   faction:'pus',     img:IMG['cfi_Leona_Skin_Portrait_监理.png']},
+    {name:'Leona',    role:'Sentinel',   faction:'pus',     img:IMG['cfi_Leona_Skin_Portrait_监理.png']},
     {name:'Chiyo',    role:'Duelist',   faction:'pus',     img:IMG['cfi_Chiyo_Skin_Portrait_御天织.png']},
     {name:'Ming',     role:'Duelist',   faction:'scissors',img:IMG['cfi_Ming_Default.png']},
     {name:'Lawine',   role:'Vanguard',  faction:'scissors',img:IMG['cfi_Lawine_Default.png']},
@@ -471,7 +475,7 @@
     {name:'Kanami',   role:'Vanguard',  faction:'scissors',img:IMG['cfi_Kanami_Default.png']},
     {name:'Eika',     role:'Duelist',   faction:'scissors',img:IMG['cfi_Eika_Default.png']},
     {name:'Fragrans', role:'Support',   faction:'scissors',img:IMG['cfi_Fragrans_Skin_Portrait_寻芳.png']},
-    {name:'Mara',     role:'Sentinel',  faction:'scissors',img:IMG['cfi_Mara_Default.png']},
+    {name:'Mara',     role:'Duelist',  faction:'scissors',img:IMG['cfi_Mara_Default.png']},
     {name:'Celestia', role:'Support',   faction:'urbino',  img:IMG['cfi_Celestia_Default.png']},
     {name:'Audrey',   role:'Sentinel',  faction:'urbino',  img:IMG['cfi_Audrey_Default.png']},
     {name:'Maddelena',role:'Controller',faction:'urbino',  img:IMG['cfi_Maddelena_Default.png']},
@@ -529,7 +533,7 @@
     document.getElementById('mapToggleBtn').classList.toggle('active',mapPanelOpen);
   }
   
-  // ========== CHAR FILTER (v1.2.0) ==========
+  // ========== CHAR FILTER (v1.2.1) ==========
   const cfAllowed = {};
   CHARS.forEach(c => {
     cfAllowed[c.name] = {
@@ -650,6 +654,59 @@
       }).finally(()=>{btn.textContent='Save Image';btn.disabled=false;});
     },250);
   }
+
+  async function copyImage(){
+  const zone=document.getElementById('captureZone');
+
+  if(!zone.classList.contains('visible')) return;
+
+  const btn=document.getElementById('copyBtn');
+
+  btn.textContent='Copying...';
+  btn.disabled=true;
+
+  try{
+    const canvas=await html2canvas(
+      zone.querySelector('.capture-inner'),
+      {
+        backgroundColor:'#09090f',
+        scale:2,
+        allowTaint:true,
+        useCORS:false,
+        imageTimeout:0,
+        logging:false,
+        onclone:(doc)=>{
+          doc.querySelectorAll('.anim')
+            .forEach(e=>e.style.animation='none');
+
+          doc.querySelectorAll('.char-card-img')
+            .forEach(img=>img.style.opacity='1');
+        }
+      }
+    );
+
+    const blob=await new Promise(resolve=>{
+      canvas.toBlob(resolve,'image/png');
+    });
+
+    await navigator.clipboard.write([
+      new ClipboardItem({
+        'image/png': blob
+      })
+    ]);
+
+    btn.textContent='Copied!';
+    setTimeout(()=>{
+      btn.textContent='Copy Image';
+    },1000);
+
+  }catch(err){
+    console.error(err);
+    alert(err.message);
+  }finally{
+    btn.disabled=false;
+  }
+}
   function initMapPanel(){
     const grid=document.getElementById('mapGrid');
     MAPS.forEach(map=>{
@@ -684,7 +741,7 @@
       <span class="stat-sep">|</span>
       <span class="stat-item">🟢 Live &nbsp;<b id="liveCount">—</b></span>
     </div>
-    <div class="page-footer-text">Strinova Team Randomizer v1.2.0 &nbsp;&mdash;&nbsp; by <span>Fiammetta</span></div>
+    <div class="page-footer-text">Strinova Team Randomizer v1.2.1 &nbsp;&mdash;&nbsp; by <span>Fiammetta</span></div>
   </footer>
 
 </body>
